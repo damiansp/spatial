@@ -1,4 +1,16 @@
+# OS Generated
+#=============
 .DS_Store
 *~
 
+
+
+# File types
+#============
 *.txt
+
+
+
+# Directories
+#============
+data/
