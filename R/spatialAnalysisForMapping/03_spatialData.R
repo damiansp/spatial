@@ -271,3 +271,38 @@ boxplot(low.vac$P_OWNEROCC,
         main='Low Vacancy')
 par(mfrow=c(1, 1))
 par(mar=c(5, 4, 4, 2))
+
+
+# 5.2 Scatterplots and Regressions
+plot(blocks$P_VACANT, blocks$P_WHITE)
+points(blocks$P_VACANT, blocks$P_BLACK, pch=16)
+p.vac <- blocks$P_VACANT
+p.w <- blocks$P_WHITE
+p.b <- blocks$P_BLACK
+w.mod <- lm(p.vac ~ p.w)
+summary(w.mod)
+b.mod <- lm(p.vac ~ p.b)
+summary(b.mod)
+abline(w.mod, lty=4)
+abline(b.mod)
+bw.mod <- lm(p.vac ~ p.w * p.b)
+bw.mod <- step(bw.mod)
+summary(bw.mod)
+par(mfrow=c(2, 2))
+plot(w.mod)
+plot(b.mod)
+plot(bw.mod)
+par(mfrow=c(1, 1))
+
+
+# 5.3 Mosaic Plots
+names(blocks)[c(11, 14:18)]
+pops <- data.frame(blocks[, 14:18]) * data.frame(blocks)[, 11]
+names(pops) <- c('White', 'Black', 'Native/Latino', 'Asian', 'Other')
+head(pops)
+vac.10 <- 1 * (blocks$P_VACANT > 10)
+mat.tab <- xtabs(as.matrix(pops) ~ vac.10)
+mosaicplot(t(mat.tab), shade=T, las=3)
+
+
+# 6 Questions
