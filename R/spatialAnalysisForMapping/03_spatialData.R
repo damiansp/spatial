@@ -2,12 +2,15 @@
 #---------#---------#---------#---------#---------#---------#---------#---------
 rm(list=ls())
 setwd('~/Learning/R/spatial/spatialAnalysisForMapping')
-Sys.setenv(JAVA_HOME='/Library/Java/JavaVirtualMachines/jdk1.8.0_121.jdk/Contents/Home/jre')
+Sys.setenv(
+  JAVA_HOME=
+  '/Library/Java/JavaVirtualMachines/jdk1.8.0_121.jdk/Contents/Home/jre')
 
 library(GISTools)
 library(maps)
 library(OpenStreetMap)
 library(PBSmapping)
+library(rgdal)
 library(rJava)
 library(RgoogleMaps)
 
@@ -305,4 +308,67 @@ mat.tab <- xtabs(as.matrix(pops) ~ vac.10)
 mosaicplot(t(mat.tab), shade=T, las=3)
 
 
-# 6 Questions
+# 6.1 Questions
+#tiff('Quest1.tiff', width=7, height=7, units='in', res=300)
+shades <- auto.shading(
+  georgia$MedInc / 1000, n=11, cols=brewer.pal(11, 'Spectral'))
+choropleth(georgia, georgia$MedInc / 1000, shading=shades)
+choro.legend(-81.7, 35.1, shades, title='Median Income ($1000s)', cex=0.75)
+#dev.off()
+
+
+# 6.2
+par(mfrow=c(1, 3))
+par(mar=c(0.25, 0.25, 2, 0.25))
+par(lwd=0.7)
+shades <- auto.shading(blocks$HSE_UNITS, 
+                       cutter=quantileCuts, 
+                       n=5, 
+                       cols=brewer.pal(5, 'RdYlGn'))
+choropleth(blocks, blocks$HSE_UNITS, shading=shades)
+choro.legend(533000, 161000, shades)
+title('Quantile Cuts')
+
+shades <- auto.shading(blocks$HSE_UNITS, 
+                       cutter=rangeCuts, 
+                       n=5, 
+                       cols=brewer.pal(5, 'RdYlGn'))
+choropleth(blocks, blocks$HSE_UNITS, shading=shades)
+choro.legend(533000, 161000, shades)
+title('Range Cuts')
+
+shades <- auto.shading(blocks$HSE_UNITS, 
+                       cutter=sdCuts, 
+                       n=5, 
+                       cols=brewer.pal(5, 'RdYlGn'))
+choropleth(blocks, blocks$HSE_UNITS, shading=shades)
+choro.legend(533000, 161000, shades)
+title('SD Cuts')
+
+
+# 6.3
+g <- data.frame(georgia2)
+rur.pop <- g$PctRural * g$TotPop90 / 100
+areas <- gArea(georgia2, byid=T)
+areas <- as.vector(areas / (1000^2))
+rur.pop.dens <- rur.pop / areas
+index <- rur.pop.dens > 20
+par(mfrow=c(1, 1))
+plot(georgia2[index, ], col='chartreuse4')
+plot(georgia2[!index, ], col='darkgoldenrod3', add=T)
+legend('bottomleft', 
+       legend=c('Rural', 'Not Rural'), 
+       pch=18, 
+       col=c('chartreuse4', 'darkgoldenrod3'))
+       
+# 6.4
+new.proj <- CRS('+proj=longlat +ellps=WGS84')
+breach2 <- spTransform(breach, new.proj)
+blocks2 <- spTransform(blocks, new.proj)
+coords <- coordinates(breach2)
+lat <- coords[, 2]
+lon <- coords[, 1]
+nh.map <- MapBackground(lat=lat, lon=lon, zoom=20)
+shp <- SpatialPolygons2PolySet(blocks2)
+PlotPolysOnStaticMap(nh.map, shp, lwd=0.7, col=rgb(0.75, 0.25, 0.25, 0.15), add=F)
+PlotOnStaticMap(nh.map, lat, lon, pch=16, col=rgb(1, 0, 0, 0.6), add=T)
