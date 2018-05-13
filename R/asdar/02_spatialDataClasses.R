@@ -113,3 +113,65 @@ llCRS <- CRS('+proj=longlat +ellps=WGS84')
 auck.shore <- MapGen2SL('data/auckland_mapgen.dat', llCRS)
 plot(auck.shore)
 summary(auck.shore)
+
+
+# 6 SpatialPolygons
+lns <- slot(auck.shore, 'lines')
+islands.auck <- sapply(
+  lns,
+  function(x) {
+    crds <- slot(slot(x, 'Lines')[[1]], 'coords')
+    identical(crds[1, ], crds[nrow(crds), ])
+  })
+table(islands.auck)
+
+getClass('Polygon')
+getClass('Polygons')
+getClass('SpatialPolygons')
+
+islands.sl <- auck.shore[islands.auck]
+plot(auck.shore)
+plot(islands.sl, add=T, col=4)
+list.of.lines <- slot(islands.sl, 'lines')
+islands.sp <- SpatialPolygons(
+  lapply(
+    list.of.lines,
+    function(x) {
+  	  Polygons(list(Polygon(slot(slot(x, 'Lines')[[1]], 'coords'))), 
+  	           ID=slot(x, 'ID'))
+    }),
+  proj4string=CRS('+proj=longlat +ellps=WGS84'))
+summary(islands.sp)
+plot(auck.shore)
+plot(islands.sp, col=4, border=5, add=T)
+slot(islands.sp, 'plotOrder')
+order(
+  sapply(
+    slot(islands.sp, 'polygons'), 
+    function (x) {
+  	  slot(x, 'area')
+    }),
+  decreasing=T)
+  
+# 6.1 SpatialPolygonsDataFrame Objects
+state.map <- map('state', plot=F, fill=T)
+ids <- sapply(strsplit(state.map$names, ':'), function(x) { x[1] })
+state.sp <- map2SpatialPolygons(state.map, IDs=ids, proj4string=llCRS)
+plot(state.sp)
+
+sat <- read.table('data/state.sat.data_mod.txt', row.names=5, header=T)
+head(sat)
+id <- match(row.names(sat), row.names(state.sp))
+row.names(sat)[is.na(id)]
+sat1 <- sat[!is.na(id), ]
+state.spdf <- SpatialPolygonsDataFrame(state.sp, sat1)
+head(slot(state.spdf, 'data'))
+str(state.spdf, max.level=2)
+#rownames(sat1)[2] <- 'Arizona'
+#SpatialPolygonsDataFrame(state.sp, sat1) # no longer matches
+DC <- 'district of columbia'
+not.dc <- !(row.names(state.spdf) == DC)
+state.spdf1 <- state.spdf[not.dc, ]
+dim(state.spdf1) # 48 continental states
+
+# 6.2 Holes and Ring Direction
