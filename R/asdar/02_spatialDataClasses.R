@@ -3,6 +3,7 @@ setwd('~/Learning/spatial/R/asdar')
 
 library(maps)
 library(maptools)
+library(rgeos)
 library(sp)
 
 
@@ -175,3 +176,33 @@ state.spdf1 <- state.spdf[not.dc, ]
 dim(state.spdf1) # 48 continental states
 
 # 6.2 Holes and Ring Direction
+# Cannot locate data source: manitoulin_sp
+length(slot(islands.sp, 'polygons'))
+sapply(
+  slot(slot(islands.sp, 'polygons')[[1]], 'Polygons'),
+  function (x) {
+  	slot(x, 'ringDir')
+  })
+islands.sp <- createSPComment(islands.sp)
+sapply(slot(islands.sp, 'polygons'), comment)
+
+
+
+# 7 SpatialGrid and SpatialPixel Objects
+getClass('GridTopology')
+bb <- bbox(islands.sp)
+bb
+cs <- c(0.01, 0.01)
+cc <- bb[, 1] + (cs / 2)
+cd <- ceiling(diff(t(bb)) / cs)
+islands.grid <- GridTopology(cellcentre.offset=cc, cellsize=cs, cells.dim=cd)
+islands.grid
+
+getClass('SpatialGrid')
+p4s <- CRS(proj4string(islands.sp))
+islands.sg <- SpatialGrid(islands.grid, proj4string=p4s)
+summary(islands.sg)
+plot(islands.sg) # just a grid
+#class(auck_el1) # More missing data
+#object.size(auck_el1)
+#object.size(slot(auck_el1, 'data))
