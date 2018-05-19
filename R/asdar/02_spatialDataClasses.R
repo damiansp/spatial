@@ -3,8 +3,12 @@ setwd('~/Learning/spatial/R/asdar')
 
 library(maps)
 library(maptools)
+library(raster)
 library(rgeos)
 library(sp)
+
+load('data/auck_el1.RData')
+data(meuse.grid)
 
 
 # 3. Spatial Objects
@@ -203,6 +207,59 @@ p4s <- CRS(proj4string(islands.sp))
 islands.sg <- SpatialGrid(islands.grid, proj4string=p4s)
 summary(islands.sg)
 plot(islands.sg) # just a grid
-#class(auck_el1) # More missing data
-#object.size(auck_el1)
-#object.size(slot(auck_el1, 'data))
+
+auck.el1 <- auck_el1
+plot(auck.el1)
+class(auck.el1) # More missing data
+object.size(auck.el1)
+object.size(slot(auck.el1, 'data'))
+is.na(auck.el1$band1) <- auck.el1$band1 <= 0
+summary(auck.el1$band1)
+
+auck.el2 <- as(auck.el1, 'SpatialPixelsDataFrame')
+object.size(auck.el2)
+object.size(slot(auck.el2, 'grid.index'))
+object.size(slot(auck.el2, 'coords'))
+sum(is.na(auck.el1$band1)) + nrow(slot(auck.el2, 'coords'))
+prod(slot(slot(auck.el2, 'grid'), 'cells.dim'))
+
+auck.el.500 <- auck.el2[auck.el2$band1 > 500, ]
+summary(auck.el.500)
+
+
+mg.sp <- SpatialPoints(cbind(meuse.grid$x, meuse.grid$y))
+summary(mg.sp)
+mg.spix0 <- SpatialPixels(mg.sp)
+plot(mg.spix0)
+summary(mg.spix0)
+
+mg.spix1 <- as(mg.sp, 'SpatialPixels')
+summary(mg.spix1) # same
+
+
+
+# 8 Raster Objects and the raster Package
+r <- raster('data/70042108.tif')
+class(r)
+object.size(r)
+cellStats(r, max)
+cellStats(r, min)
+inMemory(r)
+
+out <- raster(r)
+bs <- blockSize(out)
+out <- writeStart(out, filename=tempfile(), overwrite=T)
+for (i in 1:bs$n) {
+  v <- getValues(r, row=bs$row[i], nrows=bs$nrows[i])
+  v[v <= 0] <- NA
+  writeValues(out, v, bs$row[i])
+}
+out <- writeStop(out)
+cellStats(out, max)
+plot(out, col=terrain.colors(32))
+
+r1 <- as(out, 'SpatialGridDataFrame')
+summary(r1)
+
+r2 <- as(r1, 'RasterLayer')
+summary(r2)
