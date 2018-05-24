@@ -1,6 +1,10 @@
 rm(list=ls())
 setwd('~/Learning/spatial/R/asdar/')
 
+library(lattice)
+library(maps)
+library(maptools)
+library(rgdal)
 library(sp)
 data(meuse)
 data(meuse.grid)
@@ -60,3 +64,43 @@ SpatialPolygonsRescale(layout.north.arrow(),
                        scale=400, 
                        plot.grid=F) # click map to add arrow
 box()
+
+# 1.3 Degrees in Axes Labels and Reference Grid
+world <- map('world', interior=F, xlim=c(-179, 179), ylim=c(-89, 89), plot=T)
+world.p <- pruneMap(world, xlim=c(-179, 179))
+ll.CRS <- CRS('+proj=longlat +ellps=WGS84')
+world.sp <- map2SpatialLines(world.p, proj4string=ll.CRS)
+proj.new <- CRS('+proj=moll')
+world.proj <- spTransform(world.sp, proj.new)
+world.grid <- gridlines(world.sp, 
+                        easts=c(-179, seq(-150, 150, 50), 179.5),
+                        norths=seq(-75, 75, 15),
+                        ndiscr=100)
+world.grid.proj <- spTransform(world.grid, proj.new)
+at.sp <- gridat(world.sp, easts=0, norths=seq(-75, 75, 15), offset=0.3)
+at.proj <- spTransform(at.sp, proj.new)
+plot(world.proj, col='grey30')
+plot(world.grid.proj, col='grey70', add=T)
+text(coordinates(at.proj), 
+     pos=at.proj$pos, 
+     offset=at.proj$offset, 
+     labels=parse(text=as.character(at.proj$labels)), 
+     cex=0.6)
+     
+# 1.4 Plot Size, Plotting Area, Map Scale, and Multiple Plots
+# Set figure size in inches
+par('pin')
+# par(pin=c(4, 4))
+# dev.off()
+# quartz(width=10, height=10)
+# pdf('file.pdf', width=5, height=7)
+# par(mfrow=c(2, 3)) # SAME AS
+#layout(matrix(1:6, 2, 3, byrow=T))
+
+# 1.5 Plotting Attributes and Map Legends
+greys <- grey.colors(4, 0.55, 0.95)
+#image(zn.idw, col=greys, breaks=log(c(100, 200, 400, 800, 1800)))
+#plot(meuse.pol, add=T)
+#plot(meuse, cex=sqrt(measure$zinc) / 20, add=T)
+
+# 2 Trellis/Lattice Plots with spplot
