@@ -1,3 +1,4 @@
+#---------#---------#---------#---------#---------#---------#---------#---------
 rm(list=ls())
 setwd('~/Learning/spatial/R/asdar/')
 
@@ -104,3 +105,32 @@ greys <- grey.colors(4, 0.55, 0.95)
 #plot(meuse, cex=sqrt(measure$zinc) / 20, add=T)
 
 # 2 Trellis/Lattice Plots with spplot
+# 2.1 Straight trellice example
+levelplot(z ~ x + y | name, spmap.to.lev([c('direct', 'log')]), asp='iso')
+spplot(zn[c('direct', 'log')])
+
+# 2.2 Plotting points, lines, polygons and grids
+coordinates(meuse.grid) <- c('x', 'y')
+meuse.grid <- as(meuse.grid, 'SpatialPixelsDataFrame')
+img <- as.image.SpatialGridDataFrame(meuse.grid['dist'])
+contour.lines <- ContourLines2SLDF(contourLines(img))
+spplot(contour.lines)
+
+# 2.3 Adding reference and layout elements to plots
+river <- list('sp.polygons', meuse.poly)
+north <- list('SpatialPolygonsRescale', 
+              layout.north.arrow(), 
+              offset=c(178750, 332500), 
+              scale=400)
+scale <- list('SpatialPolygonsRescale', 
+              layout.scale.bar(), 
+              offset=c(180200, 329800), 
+              scale=1000, 
+              fill=c('transparent', 'black'))
+txt1 <- list('sp.text', c(180200, 329950), '0')
+txt2 <- list('sp.text', c(181200, 329950), '1 km')
+pts <- list('sp.points', meuse, pch=3, col=1)
+meuse.layout <- list(river, north, scale, txt1, txt2, pts)
+spplot(zn['log'], sp.layout=meuse.layout)
+
+# 2.4 Arranging panel layour
