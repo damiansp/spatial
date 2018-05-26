@@ -3,7 +3,8 @@ rm(list=ls())
 setwd('~/Learning/spatial/R/spatialAnalysisForMapping')
 
 library(GISTools)
-
+library(rgeos)
+data(georgia)
 data(tornados)
 
 # 2. Spatial Intersection or Clip Operations
@@ -52,3 +53,35 @@ midwest.torn <- SpatialPointsDataFrame(midwest.torn, data=df3)
 
 
 # 3. Buffers
+texas <- us_states2[us_states2$STATE_NAME == 'Texas', ]
+plot(texas)
+tex.buffer <- gBuffer(texas, width=25000) # width in m (25km)
+par(mar=rep(0, 4))
+plot(tex.buffer, col=4, border=4)
+plot(texas, add=T, col='white')
+
+georgia.county.buffer <- gBuffer(georgia2, width=5000, byid=T, id=georgia2$Name)
+plot(georgia.county.buffer, col=4)
+plot(georgia2, add=T, border='white')
+
+
+
+# 4. Merging Spatial Features
+usa <- gUnaryUnion(us_states)
+plot(us_states, border='darkgreen', lty=4 )
+plot(usa, add=T, border='darkgreen', lwd=3)
+
+
+
+# 5. Point-In-Polgon and Area Calculations
+# 5.1 Point-in-polygon
+tornado.count <- poly.counts(torn, us_states)
+par(mar=c(4, 4, 3, 1))
+hist(tornado.count)
+rug(tornado.count)
+
+# 5.2 Area calculations
+proj4string(us_states2) # note: units in m
+poly.areas(us_states2) # area per state in sq. m
+poly.areas(us_states2) / (100^2)  # hectares
+poly.areas(us_states2) / (1000^2) # sq. km
