@@ -2,9 +2,14 @@
 rm(list=ls())
 setwd('~/Learning/spatial/R/asdar/')
 
+library(classInt)
+library(ggplot2)
+library(grid)
 library(lattice)
+library(latticeExtra)
 library(maps)
 library(maptools)
+library(RColorBrewer)
 library(rgdal)
 library(sp)
 data(meuse)
@@ -110,6 +115,7 @@ levelplot(z ~ x + y | name, spmap.to.lev([c('direct', 'log')]), asp='iso')
 spplot(zn[c('direct', 'log')])
 
 # 2.2 Plotting points, lines, polygons and grids
+data(meuse.grid)
 coordinates(meuse.grid) <- c('x', 'y')
 meuse.grid <- as(meuse.grid, 'SpatialPixelsDataFrame')
 img <- as.image.SpatialGridDataFrame(meuse.grid['dist'])
@@ -133,4 +139,77 @@ pts <- list('sp.points', meuse, pch=3, col=1)
 meuse.layout <- list(river, north, scale, txt1, txt2, pts)
 spplot(zn['log'], sp.layout=meuse.layout)
 
-# 2.4 Arranging panel layour
+
+
+# 3. Alternative Routes: ggplot, latticeExtra
+methods(fortify)
+m <- as(meuse, 'data.frame')
+ggplot(m, aes(x, y)) + geom_point() + coord_equal()
+
+p <- spplot(meuse['zinc'])
+m <- SpatialPolygonsDataFrame(meuse.poly, data.frame(col=1), match.ID=F)
+l <- spplot(m)
+l + p
+p + l
+
+
+
+# 4. Interactive Plots
+# 4.1 Interacting with base graphics
+plot(meuse)
+meuse.id <- identify(coordinates(meuse))
+
+region <- locator(type='o')
+n <- length(region$x)
+p <- Polygon(cbind(region$x, region$y)[c(1:n, 1), ], hole=F)
+ps <- Polygons(list(p), ID='region')
+sps <- SpatialPolygons(list(ps))
+plot(meuse)
+plot(meuse[sps, ], pch=16, col=2, add=T)
+
+prj <- CRS('+proj=longlat +datum=NAD27')
+nc.shp <- system.file('shapes/sids.shp', package='maptools')[1]
+nc <- readShapePoly(nc.shp, proj4string=prj)
+plot(nc)
+pt <- locator(type='p')
+print(pt)
+pt.sp <- SpatialPoints(cbind(pt$x, pt$y), proj4string=prj)
+over(pt.sp, nc)
+
+# 4.2 Interacting with spplot and lattice plots
+ids <- spplot(meuse, 'zinc', identify=T)
+trellis.focus('panel', column=1, row=1)
+ids <- panel.identify()
+trellis.unfocus()
+
+trellis.focus('panel', column=1, row=1)
+as.numeric(grid.locator())
+trellis.unfocus()
+
+
+
+# 5. Color Palettes and Class Intervals
+# 5.1 Color palettes
+ry.colors <- colorRampPalette(c('red', 'yellow'))
+image(meuse.grid, meuse.grid['dist'], col=ry.colors(10))
+example(brewer.pal)
+
+# 5.2 Class intervals
+pal <- brewer.pal(5, 'Reds')
+q5 <- classIntervals(meuse$zinc, n=5, style='quantile')
+q5
+diff(q5$brks)
+plot(q5, pal=pal)
+
+fj5 <- classIntervals(meuse$zinc, n=5, style='fisher')
+fj5
+diff(fj5$brks)
+plot(fj5, pal=pal)
+
+q5.colors <- findColours(q5, pal)
+par(mar=rep(0, 4))
+plot(meuse, col=q5.colors, pch=19)
+legend('topleft', 
+       fill=attr(q5.colors, 'palette'), 
+       legend=names(attr(q5.colors, 'table')), 
+       bty='n')
