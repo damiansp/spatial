@@ -5,6 +5,7 @@ setwd('~/Learning/spatial/R/spatialAnalysisForMapping')
 library(GISTools)
 library(rgeos)
 data(georgia)
+data(newhaven)
 data(tornados)
 
 # 2. Spatial Intersection or Clip Operations
@@ -85,3 +86,38 @@ proj4string(us_states2) # note: units in m
 poly.areas(us_states2) # area per state in sq. m
 poly.areas(us_states2) / (100^2)  # hectares
 poly.areas(us_states2) / (1000^2) # sq. km
+
+# 5.3 Point and areas anlysis exercise
+densities <- poly.counts(breach, blocks) / ft2miles(ft2miles(poly.areas(blocks)))
+cor(blocks$P_OWNEROCC, densities)
+plot(blocks$P_OWNEROCC, densities)
+n.breaches <- poly.counts(breach, blocks)
+area <- ft2miles(ft2miles(poly.areas(blocks)))
+pois.mod <- glm(
+  n.breaches ~ P_OWNEROCC, offset=log(area), data=blocks, family=poisson)
+summary(pois.mod)
+par(mfrow=c(2, 2))
+plot(pois.mod)
+s.resids <- rstandard(pois.mod)
+resid.shades <- shading(c(-2, 2), c('red', 'grey', 'blue'))
+par(mfrow=c(1, 1), mar=rep(0, 4))
+choropleth(blocks, s.resids, resid.shades)
+pois.mod <- update(pois.mod, .~. + P_VACANT)
+par(mfrow=c(2, 2))
+plot(pois.mod)
+s.resids <- rstandard(pois.mod)
+par(mfrow=c(1, 1), mar=rep(0, 4))
+choropleth(blocks, s.resids, resid.shades)
+par(mar=c(5, 4, 4, 2))
+
+
+
+# 6. Creating Disturbance Attributes
+proj4string(places) <- CRS(proj4string(blocks))
+centroids <- gCentroid(blocks, byid=T, id=rownames(blocks))
+centroids <- spTransform(centroids, CRS(proj4string(blocks)))
+plot(blocks)
+points(centroids, pch=16, cex=0.6)
+distances <- ft2miles(gDistance(places, centroids, byid=T))
+distances <- gWithinDistance(places, blocks, byid=T, dist=miles2ft(1.2))
+
