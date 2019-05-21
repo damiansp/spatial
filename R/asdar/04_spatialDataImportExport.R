@@ -2,10 +2,13 @@
 rm(list=ls())
 setwd('~/Learning/spatial/R/asdar')
 
+library(DCluster)
 library(maptools)
 library(rgdal)
-
-
+library(rgeos)
+library(spacetime)
+library(spdep)
+data(wrld_simpl)
 
 # 1 Coordinate Reference Systems
 epsg.news <- 'http://svn.osgeo.org/metacrs/proj/trunk/proj/NEWS'
@@ -56,3 +59,61 @@ as.numeric(char2dms('4d31\'00"E'))
 # 2 Vector File Formats
 # 2.1 Using OGR drivers in rgdal
 head(ogrDrivers())
+scot.dat <- read.table('data/scotland.dat', skip=1)
+names(scot.dat) <- c(
+  'District', 'Observed', 'Expected', 'PcAFF', 'Latitude', 'Longitude')
+ogrInfo('data', 'scot')
+scot.LL <- readOGR(dsn='data', layer='scot')
+proj4string(scot.LL) <- CRS('+proj=longlat +ellps=WGS84')
+plot(scot.LL)
+sapply(slot(scot.LL, 'data'), class)
+scot.LL$ID
+scot.dat$District
+ID.D <- match(scot.LL$ID, scot.dat$District)
+scot.dat1 <- scot.dat[ID.D, ]
+row.names(scot.dat1) <- row.names(scot.LL)
+scot.LLa <- spCbind(scot.LL, scot.dat1)
+all.equal(as.numeric(scot.LLa$ID), scot.LLa$District)
+names(scot.LLa)
+
+Obs <- scot.LLa$Observed
+Exp <- scot.LLa$Expected
+scot.LLa$SMR <- probmap(Obs, Exp)$relRisk / 100
+scot.LLa$smth <- empbaysmooth(Obs, Exp)$smthrr
+scot.BNG <- spTransform(scot.LLa, CRS('+init=epsg:27700'))
+plot(scot.BNG)
+drv <- 'ESRI Shapefile'
+writeOGR(scot.BNG, dsn='data', layer='scotBNG', driver=drv)
+
+dsn <- 'WFS:http://geohub.jrc.ec.europa.eu/effis/ows'
+ogrListLayers(dsn) # not found :)
+Fires <- readOGR(dsn, 'EFFIS:FiresAll')
+names(Fires)
+
+x <- c(-15, -15, 38, 38, -15)
+y <- c(28, 62, 62, 28, 28)
+crds <- cbind(x=x, y=y)
+bb <- SpatialPolygons(list(Polygons(list(Polygon(coord=crds)), '1')))
+proj4string(bb) <- CRS(proj4string(wrld_simpl))
+slbb <- gIntersection(bb, as(wrld_simpl, 'SpatialLines'))
+spl <- list('sp.lines', slbb, lwd=0.7, col='khaki4')
+
+plot(slbb)
+Fires$dt <- as.Date(as.character(Fires$FiereDate), format='%d-%m-%Y')
+Fires0 <- Fires[-which(coordinates(Fires)[, 2] < 0), ]
+Fires1 <- Fires0[order(Fires0$dt), ]
+Fires2 <- STIDF(as(Fires1, 'SpatialPoints'), Fires1$dt, as(Fires1, 'data.frame'))
+stplot(Fires2, number=3, sp.layout=spl, cex=0.5)
+names(Fires1)[1] <- 'name'
+GR.Fires <- Fires1[Fires1$Country == 'GR', ]
+writeOGR(GR.Fires, 
+         'data/EFFIS.gpx', 
+         'waypoints', 
+         driver='GPX', 
+         dataset_options='GPX_USE_EXTENSIONS=YES')
+GR <- readOGR('data/EFFIS.gpx', 'waypoints')
+GR[1, c(5, 24:28)]
+
+
+# 2.2 Other import/export functions
+getinfo.shape('scot_BNG.shp')
