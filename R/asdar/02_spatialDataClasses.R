@@ -1,4 +1,9 @@
+#=========#=========#=========#=========#=========#=========#=========#=========
 rm(list=ls())
+lapply(paste('package:', names(sessionInfo()$otherPkgs), sep=''),
+       detach,
+       character.only=T,
+       unload=T)
 setwd('~/Learning/spatial/R/asdar')
 
 library(maps)
@@ -9,6 +14,7 @@ library(sp)
 
 load('data/auck_el1.RData')
 data(meuse.grid)
+
 
 
 # 3. Spatial Objects
@@ -26,6 +32,7 @@ Spatial(bb, proj4string=CRS('+proj=longlat'))
 
 # 4. Spatial Points
 cran.df <- read.table('data/CRAN051001a.txt', header=T)
+head(cran.df)
 cran.mat <- cbind(cran.df$long, cran.df$lat)
 row.names(cran.mat) <- 1:nrow(cran.mat)
 str(cran.mat)
@@ -33,6 +40,7 @@ getClass('SpatialPoints')
 llCRS <- CRS('+proj=longlat +ellps=WGS84')
 cran.sp <- SpatialPoints(cran.mat, proj4string=llCRS)
 summary(cran.sp)
+
 
 # 4.1 Methods
 bbox(cran.sp)
@@ -43,6 +51,7 @@ coordinates(cran.sp)[brazil,]
 summary(cran.sp[brazil,])
 southern.hemi <- which(coordinates(cran.sp)[, 2] < 0)
 summary(cran.sp[-southern.hemi, ])
+
 
 # 4.2 Dataframes for Spatial Point Data
 str(row.names(cran.df))
