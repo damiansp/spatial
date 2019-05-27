@@ -60,7 +60,7 @@ cran.spdf1 <- SpatialPointsDataFrame(
 str(cran.spdf1)
 cran.spdf1[4,]
 cran.spdf1@data[4, ]
-cran.spdf1$loc # or [['loc']]
+cran.spdf1$loc # or [['loc']] = cran.df$loc
 s <- sample(nrow(cran.df))
 cran.spdf2 <- SpatialPointsDataFrame(
   cran.mat, cran.df[s,], proj4string=llCRS, match.ID=T)
