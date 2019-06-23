@@ -167,6 +167,7 @@ order(
     }),
   decreasing=T)
   
+
 # 6.1 SpatialPolygonsDataFrame Objects
 state.map <- map('state', plot=F, fill=T)
 ids <- sapply(strsplit(state.map$names, ':'), function(x) { x[1] })
@@ -187,6 +188,7 @@ DC <- 'district of columbia'
 not.dc <- !(row.names(state.spdf) == DC)
 state.spdf1 <- state.spdf[not.dc, ]
 dim(state.spdf1) # 48 continental states
+
 
 # 6.2 Holes and Ring Direction
 # Cannot locate data source: manitoulin_sp
@@ -223,6 +225,7 @@ class(auck.el1) # More missing data
 object.size(auck.el1)
 object.size(slot(auck.el1, 'data'))
 is.na(auck.el1$band1) <- auck.el1$band1 <= 0
+plot(auck.el1)
 summary(auck.el1$band1)
 
 auck.el2 <- as(auck.el1, 'SpatialPixelsDataFrame')
@@ -234,7 +237,6 @@ prod(slot(slot(auck.el2, 'grid'), 'cells.dim'))
 
 auck.el.500 <- auck.el2[auck.el2$band1 > 500, ]
 summary(auck.el.500)
-
 
 mg.sp <- SpatialPoints(cbind(meuse.grid$x, meuse.grid$y))
 summary(mg.sp)
