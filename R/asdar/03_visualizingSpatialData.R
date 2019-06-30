@@ -1,5 +1,9 @@
 #---------#---------#---------#---------#---------#---------#---------#---------
 rm(list=ls())
+lapply(paste('package:', names(sessionInfo()$otherPkgs), sep=''),
+       detach,
+       character.only=T,
+       unload=T)
 setwd('~/Learning/spatial/R/asdar/')
 
 library(classInt)
@@ -16,7 +20,11 @@ data(meuse)
 data(meuse.grid)
 data(meuse.riv)
 
+
+
 # 1 Traditional Plot Systme
+
+
 # 1.1 Plotting points, lines, polygons and grids
 coordinates(meuse) <- c('x', 'y')
 plot(meuse)
@@ -36,6 +44,7 @@ meuse.grid <- as(meuse.grid, 'SpatialPixels')
 image(meuse.grid, col='darkgrey')
 plot(meuse.poly, col=rgb(0, 0, 1, 0.8), add=T)
 plot(meuse, pch=16, col=rgb(0, 0.5, 0, 0.8), cex=0.75, add=T)
+
 
 # 1.2 Axes and layout elements
 layout(matrix(c(1, 2), 1))
