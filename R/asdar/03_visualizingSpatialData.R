@@ -67,6 +67,7 @@ par(oldpar)
 par(mfrow=c(1, 1))
 plot(meuse)
 plot(meuse.poly, col=4, add=T)
+box()
 SpatialPolygonsRescale(layout.scale.bar(), 
                        offset=locator(1), 
                        scale=1000, 
@@ -78,7 +79,7 @@ SpatialPolygonsRescale(layout.north.arrow(),
                        offset=locator(1), 
                        scale=400, 
                        plot.grid=F) # click map to add arrow
-box()
+
 
 # 1.3 Degrees in Axes Labels and Reference Grid
 world <- map('world', interior=F, xlim=c(-179, 179), ylim=c(-89, 89), plot=T)
