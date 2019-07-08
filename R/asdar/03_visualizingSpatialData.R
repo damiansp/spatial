@@ -9,6 +9,7 @@ setwd('~/Learning/spatial/R/asdar/')
 library(classInt)
 library(ggplot2)
 library(grid)
+library(gstat)
 library(lattice)
 library(latticeExtra)
 library(maps)
@@ -103,9 +104,10 @@ text(coordinates(at.proj),
      labels=parse(text=as.character(at.proj$labels)), 
      cex=0.6)
      
+
 # 1.4 Plot Size, Plotting Area, Map Scale, and Multiple Plots
 # Set figure size in inches
-par('pin')
+# par('pin')
 # par(pin=c(4, 4))
 # dev.off()
 # quartz(width=10, height=10)
@@ -113,16 +115,26 @@ par('pin')
 # par(mfrow=c(2, 3)) # SAME AS
 #layout(matrix(1:6, 2, 3, byrow=T))
 
+
 # 1.5 Plotting Attributes and Map Legends
 greys <- grey.colors(4, 0.55, 0.95)
-#image(zn.idw, col=greys, breaks=log(c(100, 200, 400, 800, 1800)))
-#plot(meuse.pol, add=T)
-#plot(meuse, cex=sqrt(measure$zinc) / 20, add=T)
+zn.idw <- krige(log(zinc) ~ 1, meuse, meuse.grid)
+image(zn.idw, col=greys, breaks=log(c(100, 200, 400, 800, 1800)))
+plot(meuse.poly, add=T)
+plot(meuse, pch=1, cex=sqrt(meuse$zinc) / 20, add=T)
+
+
 
 # 2 Trellis/Lattice Plots with spplot
+
+
 # 2.1 Straight trellice example
-levelplot(z ~ x + y | name, spmap.to.lev([c('direct', 'log')]), asp='iso')
+zn <- krige(zinc ~ 1, meuse, meuse.grid)
+zn$direct <- zn$var1.pred
+zn$log <- exp(krige(log(zinc) ~ 1, meuse, meuse.grid)$var1.pred)
+levelplot(z ~ x + y | name, spmap.to.lev(zn[c('direct', 'log')]), asp='iso')
 spplot(zn[c('direct', 'log')])
+
 
 # 2.2 Plotting points, lines, polygons and grids
 data(meuse.grid)
