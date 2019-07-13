@@ -4,7 +4,7 @@ lapply(paste('package:', names(sessionInfo()$otherPkgs), sep=''),
        detach,
        character.only=T,
        unload=T)
-setwd('~/Learning/spatial/R/asdar/')
+setwd('~/Learning/spatial/R/asdar')
 
 library(classInt)
 library(ggplot2)
@@ -143,6 +143,7 @@ meuse.grid <- as(meuse.grid, 'SpatialPixelsDataFrame')
 img <- as.image.SpatialGridDataFrame(meuse.grid['dist'])
 contour.lines <- ContourLines2SLDF(contourLines(img))
 spplot(contour.lines)
+
 
 # 2.3 Adding reference and layout elements to plots
 river <- list('sp.polygons', meuse.poly)
