@@ -178,6 +178,8 @@ p + l
 
 
 # 4. Interactive Plots
+
+
 # 4.1 Interacting with base graphics
 plot(meuse)
 meuse.id <- identify(coordinates(meuse))
@@ -193,11 +195,13 @@ plot(meuse[sps, ], pch=16, col=2, add=T)
 prj <- CRS('+proj=longlat +datum=NAD27')
 nc.shp <- system.file('shapes/sids.shp', package='maptools')[1]
 nc <- readShapePoly(nc.shp, proj4string=prj)
+#nc <- readOGR(nc.shp)
 plot(nc)
 pt <- locator(type='p')
 print(pt)
 pt.sp <- SpatialPoints(cbind(pt$x, pt$y), proj4string=prj)
 over(pt.sp, nc)
+
 
 # 4.2 Interacting with spplot and lattice plots
 ids <- spplot(meuse, 'zinc', identify=T)
@@ -212,10 +216,13 @@ trellis.unfocus()
 
 
 # 5. Color Palettes and Class Intervals
+
+
 # 5.1 Color palettes
 ry.colors <- colorRampPalette(c('red', 'yellow'))
-image(meuse.grid, meuse.grid['dist'], col=ry.colors(10))
-example(brewer.pal)
+image(meuse.grid['dist'], col=ry.colors(10))
+#example(brewer.pal)
+
 
 # 5.2 Class intervals
 pal <- brewer.pal(5, 'Reds')
