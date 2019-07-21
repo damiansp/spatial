@@ -36,6 +36,7 @@ CRS('+init=epsg:4230')
 ED50 <- CRS('+init=epsg:4230 +towgs84=-87,-96,-120,0,0,0,0')
 ED50
 
+
 # 1.3 Projection and transformation
 IJ.east <- as(char2dms("4d31'00\"E"), 'numeric')
 IJ.north <- as.numeric(char2dms('52d28\'00"N'))
@@ -58,6 +59,7 @@ proj <- projInfo('proj')
 proj[proj$name == 'laea', ]
 ellps <- projInfo('ellps')
 ellps[grep('a=6370997', ellps$major), ]
+
 
 # 1.4 Degrees, minutes, and seconds (DMS)
 getSlots('DMS')
