@@ -75,6 +75,8 @@ as.numeric(char2dms('4d31\'00"E'))
 
 
 # 2 Vector File Formats
+
+
 # 2.1 Using OGR drivers in rgdal
 head(ogrDrivers())
 scot.dat <- read.table('data/scotland.dat', skip=1)
@@ -104,7 +106,7 @@ drv <- 'ESRI Shapefile'
 writeOGR(scot.BNG, dsn='data', layer='scotBNG', driver=drv)
 
 dsn <- 'WFS:http://geohub.jrc.ec.europa.eu/effis/ows'
-ogrListLayers(dsn) # not found :)
+ogrListLayers(dsn) # not found 
 Fires <- readOGR(dsn, 'EFFIS:FiresAll')
 names(Fires)
 
