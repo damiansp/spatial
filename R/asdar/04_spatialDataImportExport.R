@@ -62,8 +62,15 @@ ellps[grep('a=6370997', ellps$major), ]
 
 
 # 1.4 Degrees, minutes, and seconds (DMS)
+IJ.dms.E <- '4d31\'00"E'
+IJ.dms.N <- '52d28\'00"N'
+IJ.east <- char2dms(IJ.dms.E)
+IJ.north <- char2dms(IJ.dms.N)
+IJ.east
+IJ.north
 getSlots('DMS')
 as.numeric(char2dms('4d31\'00"E'))
+
 
 
 
