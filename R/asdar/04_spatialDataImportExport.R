@@ -7,12 +7,15 @@ lapply(paste('package:', names(sessionInfo()$otherPkgs), sep=''),
 setwd('~/Learning/spatial/R/asdar')
 
 library(DCluster)
+library(gstat)
 library(maptools)
 library(rgdal)
 library(rgeos)
 library(spacetime)
 library(spdep)
 
+data(meuse)
+data(meuse.grid)
 data(wrld_simpl)
 
 
@@ -136,4 +139,38 @@ GR[1, c(5, 24:28)]
 
 
 # 2.2 Other import/export functions
-getinfo.shape('scot_BNG.shp')
+getinfo.shape('data/scotBNG.shp')
+
+
+
+# 3. Raster File Formats
+
+
+# 3.1 Using GDAL Drivers in rgdal
+auck.el1 <- readGDAL('data/70042108.tif')
+summary(auck.el1)
+is.na(auck.el1$band1) <- auck.el1$band1 <= 0 | auck.el1$band1 > 10000
+
+x <- GDAL.open('data/70042108.tif')
+(xx <- getDriver(x))
+getDriverLongName(xx)
+x
+GDALinfo('data/70042108.tif')
+
+brks <- c(0, 10, 20, 50, 100, 150, 200, 300, 400, 500, 600, 700)
+(pal <- terrain.colors(11))
+auck.el1$band1 <- findInterval(auck.el1$band1, vec=brks, all.inside=T) - 1
+writeGDAL(auck.el1, 
+          'data/demIndex.tif', 
+          drivername='GTiff', 
+          type='Byte', 
+          colorTable=list(pal),
+          mvFlag=length(brks) - 1)
+Gi <- GDALinfo('data/demIndex.tif', returnColorTable=T)
+CT <- attr(Gi, 'ColorTable')[[1]]
+CT[CT > '#000000']
+
+#log.zinc <- idw(log(zinc) ~ 1, meuse, meuse.grid)['var1.pred']
+
+
+# 3.2 Other Import/Export Functions
