@@ -9,8 +9,10 @@ setwd('~/Learning/spatial/R/asdar')
 library(DCluster)
 library(gstat)
 library(maptools)
+library(osmar)
 library(rgdal)
 library(rgeos)
+library(RgoogleMaps)
 library(spacetime)
 library(spdep)
 
@@ -173,4 +175,13 @@ CT[CT > '#000000']
 #log.zinc <- idw(log(zinc) ~ 1, meuse, meuse.grid)['var1.pred']
 
 
-# 3.2 Other Import/Export Functions
+
+# 4. Google Earth, Google Maps, and Other Formats
+# Outdated--now requires auth
+#my.map <- GetMap(
+#  center=c(60.395, 5.322), zoom=16, destfile='myTile.png', maptype='mobile')
+
+api <- osmsource_api()
+box <- corner_bbox(5.319, 60.392, 5.328, 60.398)
+# out of date
+#torget <- get_osm(box, source=api)
