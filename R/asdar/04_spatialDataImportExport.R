@@ -15,6 +15,7 @@ library(rgeos)
 library(RgoogleMaps)
 library(spacetime)
 library(spdep)
+library(spgrass6)
 
 data(meuse)
 data(meuse.grid)
@@ -185,3 +186,9 @@ api <- osmsource_api()
 box <- corner_bbox(5.319, 60.392, 5.328, 60.398)
 # out of date
 #torget <- get_osm(box, source=api)
+
+
+
+# 5. Geographical Resources Analysis Support System (GRASS)
+# Requires GRASS to be running....
+#execGRASS('g.region', flags='p')
