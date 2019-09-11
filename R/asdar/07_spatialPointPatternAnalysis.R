@@ -24,19 +24,17 @@ summary(spjpines)
 spjpines1 <- elide(spjpines, scale=T, unitsq=T) # convert coord dims to unit sq.
 summary(spjpines1)
 
-spred <- as(redwoodfull, "SpatialPoints")
-spcells <- as(cells, "SpatialPoints")
+spred <- as(redwoodfull, 'SpatialPoints')
+spcells <- as(cells, 'SpatialPoints')
 dpp <- data.frame(
   rbind(coordinates(spjpines1), coordinates(spred), coordinates(spcells)))
 njap <- nrow(coordinates(spjpines1))
 nred <- nrow(coordinates(spred))
 ncells <- nrow(coordinates(spcells))
 dpp <- cbind(
-  dpp, c(rep("JAPANESE",njap), rep("REDWOOD", nred), rep("CELLS", ncells))) 
-names(dpp) <- c("x", "y", "DATASET")
+  dpp, c(rep('JAPANESE', njap), rep('REDWOOD', nred), rep('CELLS', ncells))) 
+names(dpp) <- c('x', 'y', 'DATASET')
 xyplot(y ~ x | DATASET, data=dpp, pch=19, aspect=1)
-
-
 
 pppjap <- as(spjpines1, 'ppp')
 summary(pppjap)
@@ -50,9 +48,9 @@ plot(spbdry, axes=T)
 plot(sproads, add=T, col='grey30')
 plot(spasthma, 
      add=T, 
-     pch=c(4, 17)[(spasthma$Asthma == "case") + 1], 
-     col=c(2, 4)[(spasthma$Asthma == "case") + 1], 
-     cex=c(0.6, 0.75)[(spasthma$Asthma == "case") + 1])
+     pch=c(4, 17)[(spasthma$Asthma == 'case') + 1], 
+     col=c(2, 4)[(spasthma$Asthma == 'case') + 1], 
+     cex=c(0.6, 0.75)[(spasthma$Asthma == 'case') + 1])
 plot(spsrc, pch=22, add=T, cex=1.2, bg=5)
 
 
@@ -75,11 +73,11 @@ G.results <- cbind(G.results,
 
 xyplot(obs ~ theo | y, 
        data=G.results, 
-       type="l", 
+       type='l', 
 	   panel=function(x, y, subscripts) {
 		 lpolygon(c(x, rev(x)), 
 		          c(G.results$lo[subscripts], rev(G.results$hi[subscripts])),
-		          border="gray", col="gray")
-		 llines(x, y, col="black", lwd=2)
+		          border='gray', col='gray')
+		 llines(x, y, col='black', lwd=2)
 	   })
 # Cells: evenly distributed; Japanese: Random; Redwood: clustered
