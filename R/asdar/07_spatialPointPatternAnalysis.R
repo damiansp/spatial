@@ -81,3 +81,6 @@ xyplot(obs ~ theo | y,
 		 llines(x, y, col='black', lwd=2)
 	   })
 # Cells: evenly distributed; Japanese: Random; Redwood: clustered
+
+
+# 3.3 F Function: Distance from a Point to the Nearest Event
