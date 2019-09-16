@@ -84,3 +84,26 @@ xyplot(obs ~ theo | y,
 
 
 # 3.3 F Function: Distance from a Point to the Nearest Event
+r <- seq(0, sqrt(2) / 6, by=0.001)
+Fenv.jap   <- envelope(as(spjpines1, 'ppp'), fun=Fest, r=r, nrank=2, nsim=99)
+Fenv.cells <- envelope(as(spcells, 'ppp'),   fun=Fest, r=r, nrank=2, nsim=99)
+Fenv.red   <- envelope(as(spred, 'ppp'), fun=Fest, r=r, nrank=2, nsim=99)
+F.results <- rbind(Fenv.jap, Fenv.red, Fenv.cells)
+F.results <- cbind(F.results, 
+                   y=rep(c('Japanese', 'Redwood', 'Cells'), each=length(r)))
+xyplot(obs ~ theo | y, 
+       data=F.results, 
+       type='l', 
+	   panel=function(x, y, subscripts) {
+		 lpolygon(c(x, rev(x)), 
+		          c(F.results$lo[subscripts], rev(F.results$hi[subscripts])),
+		          border='gray', col='gray')
+		 llines(x, y, col='black', lwd=2)
+	   })
+
+
+
+# 4. Statistical Analysis of Spatial Point Process
+
+
+# 4.1 Homogeneous Poisson Processes
