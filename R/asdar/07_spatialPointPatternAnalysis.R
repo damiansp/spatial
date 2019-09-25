@@ -10,6 +10,7 @@ library(lattice)
 library(maptools)
 library(rgdal)
 library(spatstat)
+library(splancs)
 data(cells)
 data(japanesepines)
 data(redwoodfull)
@@ -106,4 +107,21 @@ xyplot(obs ~ theo | y,
 # 4. Statistical Analysis of Spatial Point Process
 
 
-# 4.1 Homogeneous Poisson Processes
+# 4.3 Estimation of the Intensity
+mserwq <- mse2d(as.points(coordinates(spred)), 
+                as.points(list(x=c(0, 1, 1, 0), y=c(0, 0, 1, 1))), 
+                100, 
+                0.15)
+bwq <- mserwq$h[which.min(mserwq$mse)] # select bandwidth that minimizes mse
+bwq # 0.039
+
+# alternately
+mserw <- as.numeric(bw.diggle(as(spred, 'ppp')))
+mserw # 0.0198
+
+plot(mserwq$mse ~ mserwq$h, 
+     type='l', 
+     xlab='bandwidth', 
+     ylab='MSE', 
+     main='Quartic Kernel')
+points(mserwq$h[which.min(mserwq$mse)], min(mserwq$mse))
