@@ -6,6 +6,7 @@ lapply(paste('package:', names(sessionInfo()$otherPkgs), sep=''),
        unload=T)
 setwd('~/Learning/spatial/R/asdar')
 
+library(cubature)
 library(lattice)
 library(maptools)
 library(rgdal)
@@ -13,6 +14,7 @@ library(spatstat)
 library(splancs)
 data(cells)
 data(japanesepines)
+data(lansing)
 data(redwoodfull)
 
 
@@ -118,6 +120,7 @@ bwq # 0.039
 # alternately
 mserw <- as.numeric(bw.diggle(as(spred, 'ppp')))
 mserw # 0.0198
+bw <- as.numeric(mserw)
 
 plot(mserwq$mse ~ mserwq$h, 
      type='l', 
@@ -125,3 +128,66 @@ plot(mserwq$mse ~ mserwq$h,
      ylab='MSE', 
      main='Quartic Kernel')
 points(mserwq$h[which.min(mserwq$mse)], min(mserwq$mse))
+
+poly <- as.points(list(x=c(0, 0, 1, 1), y=c(0, 1, 1, 0)))
+sG <- Sobj_SpatialGrid(spred, maxDim=100)$SG
+grd <- slot(sG, 'grid')
+summary(grd)
+k0 <- spkernel2d(spred, poly, h0=bw, grd)
+k1 <- spkernel2d(spred, poly, h0=0.05, grd)
+k2 <- spkernel2d(spred, poly, h0=0.1, grd)
+k3 <- spkernel2d(spred, poly, h0=0.15, grd)
+df <- data.frame(k0=k0, k1=k1, k2=k2, k3=k3)
+head(df)
+kernels <- SpatialGridDataFrame(grd, data=df)
+summary(kernels)
+
+cc <- coordinates(kernels)
+xy <- list(x=cc[, 1], y=cc[, 2])
+k4 <- density(as(spred, 'ppp'), 0.5 * bw, dimyx=c(100, 100), xy=xy)
+plot(k4)
+kernels$k4 <- as(k4, 'SpatialGridDataFrame')$v
+k5 <- density(as(spred, 'ppp'), 0.5 * 0.05, dimyx=c(100, 100), xy=xy)
+plot(k5)
+kernels$k5 <- as(k5, 'SpatialGridDataFrame')$v
+k6 <- density(as(spred, 'ppp'), 0.5 * 0.1, dimyx=c(100, 100), xy=xy)
+plot(k6)
+kernels$k6 <- as(k6, 'SpatialGridDataFrame')$v
+k7 <- density(as(spred, 'ppp'), 0.5 * 0.15, dimyx=c(100, 100), xy=xy)
+plot(k7)
+kernels$k7 <- as(k7, 'SpatialGridDataFrame')$v
+summary(kernels)
+
+
+# 4.4 Likelihood of an Imhomogeneous Poisson Process
+log.lambda <- function(x, alpha, beta) {
+  alpha + sum(beta * c(x, x * x, prod(x)))
+}
+
+L <- function(alphabeta, x) {
+  l <- apply(x, 1, log.lambda, alpha=alphabeta[1], beta=alphabeta[-1])
+  l <- sum(l)
+  int.L <- adaptIntegrate(
+    lowerLimit=c(0, 0), 
+    upperLimit=c(1, 1), 
+    fDim=1, 
+    tol=1e-08, 
+    f=function(x, alpha=alphabeta[1], beta=alphabeta[-1]) { 
+      exp(log.lambda(x, alpha, beta))
+    })
+  l - int.L$integral
+}
+
+l.maple <- lansing[lansing$marks == 'maple', ]
+x <- as.points(l.maple)
+opt.beta <- optim(
+  par=c(log(514), 0, 0, 0, 0, 0), fn=L, control=list(maxit=1000, fnscale=-1), x=x)
+opt.beta
+
+ppm.mod <- ppm(Q=l.maple, trend=~x + y + I(x^2) + I(y^2) + I(x * y))
+ppm.mod
+par(mfrow=c(3, 4))
+par(mar=c(0.1, 0.1, 4, 1.5))
+plot(ppm.mod)
+
+
