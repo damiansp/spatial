@@ -191,3 +191,10 @@ par(mar=c(0.1, 0.1, 4, 1.5))
 plot(ppm.mod)
 
 
+# 4.5 Second-Order Properties
+Kenv.jap <- envelope(as(spjpines1, 'ppp'), fun=Kest, r=r, nrank=2, nsim=99)
+Kenv.red <- envelope(as(spred, 'ppp'), fun=Kest, r=r, nrank=2, nsim=99)
+Kenv.cells <- envelope(as(spcells, 'ppp'), fun=Kest, r=r, nrank=2, nsim=99)
+K.results <- rbind(Kenv.jap, Kenv.red, Kenv.cells)
+K.results <- cbind(K.results, 
+                   y=rep(c('Japanese', 'Redwood', 'Cells'), each=length(r)))
