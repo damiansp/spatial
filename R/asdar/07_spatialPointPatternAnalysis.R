@@ -198,3 +198,34 @@ Kenv.cells <- envelope(as(spcells, 'ppp'), fun=Kest, r=r, nrank=2, nsim=99)
 K.results <- rbind(Kenv.jap, Kenv.red, Kenv.cells)
 K.results <- cbind(K.results, 
                    y=rep(c('Japanese', 'Redwood', 'Cells'), each=length(r)))
+
+
+
+# 5 Some Applications of Spatial Epidemiology
+
+
+# 5.1 Case-Control Studies
+
+# 5.1.1 Spatial Variation of the Relative Risk
+bw.asthma <- 0.06
+ppp.asthma <- as(spasthma, 'ppp')
+ppp.asthma$window <- as(spbdry, 'owin')
+marks(ppp.asthma) <- relevel(ppp.asthma$marks$Asthma, 'control')
+
+cases <- unmark(subset(ppp.asthma, marks(ppp.asthma) == 'case'))
+n.cases <- npoints(cases)
+controls <- unmark(subset(ppp.asthma, marks(ppp.asthma) == 'control'))
+n.controls <- npoints(controls)
+k.cases <- density(cases, bw.asthma)
+k.controls <- density(controls, bw.asthma)
+par(mfrow=c(2, 1))
+plot(k.cases)
+plot(k.controls)
+
+sp.k.ratio0 <- as(k.cases, 'SpatialGridDataFrame')
+names(sp.k.ratio0) <- 'k.cases'
+sp.k.ratio0$k.controls <- as(k.controls, 'SpatialGridDataFrame')$v
+sp.k.ratio <- as(sp.k.ratio0, 'SpatialPixelsDataFrame')
+sp.k.ratio$k.ratio <- sp.k.ratio$k.cases / sp.k.ratio$k.controls
+sp.k.ratio$log.ratio <- log(sp.k.ratio$k.ratio) - log(n.cases / n.controls)
+plot(sp.k.ratio)
