@@ -229,3 +229,51 @@ sp.k.ratio <- as(sp.k.ratio0, 'SpatialPixelsDataFrame')
 sp.k.ratio$k.ratio <- sp.k.ratio$k.cases / sp.k.ratio$k.controls
 sp.k.ratio$log.ratio <- log(sp.k.ratio$k.ratio) - log(n.cases / n.controls)
 plot(sp.k.ratio)
+
+iters <- 99
+ratio <- rep(NA, iters)
+p.val.map <- rep(0, nrow(sp.k.ratio))
+r.label.ratio <- matrix(NA, nrow=iters, ncol=nrow(sp.k.ratio))
+
+for (i in 1:iters) {
+  if (i %% 5 == 0 ) cat(sprintf('iter: %d\r', i))
+  ppp.asthma0 <- rlabel(ppp.asthma)
+  cases.rel <- unmark(subset(ppp.asthma0, marks(ppp.asthma0) == 'case'))
+  controls.rel <- unmark(subset(ppp.asthma0, marks(ppp.asthma0) == 'control'))
+  k.cases.rel <- density(cases.rel, bw.asthma)
+  k.controls.rel <- density(controls.rel, bw.asthma)
+  k.ratio.rel <- eval.im(k.cases.rel / k.controls.rel)
+  r.label.ratio[i, ] <- as(as(k.ratio.rel, 'SpatialGridDataFrame'), 
+                           'SpatialPixelsDataFrame')$v
+  p.val.map <- p.val.map + (sp.k.ratio$k.ratio < r.label.ratio[i, ])
+}
+
+cell.size <- k.controls$xstep * k.controls$ystep
+ratio.rho <- cell.size * sum((sp.k.ratio$k.ratio - n.cases / n.controls)^2)
+ratio <- cell.size * apply(
+  r.label.ratio, 
+  1, 
+  function(x, rho0) {
+  	sum((x - rho0)^2)
+  },
+  rho0=n.cases / n.controls)
+(p.value.rho <- (sum(ratio > ratio.rho) + 1) / (iters + 1)) 
+# 0.56 - not-signif: consistent with constant-risk ratio (e.g., risk of asthma const 
+# at all locations)
+
+sp.k.ratio$p.val.map <- (p.val.map + 1) / (iters + 1)
+img.p.val <- as.image.SpatialGridDataFrame(sp.k.ratio['p.val.map'])
+clp.val <- contourLines(img.p.val, levels=c(0, 0.05, 0.95, 1))
+c1 <- ContourLines2SLDF(clp.val)
+image(img.p.val)
+lines(c1)
+
+
+# 5.2 Binary Regression Estimator
+rr.bw <- bw.relrisk(ppp.asthma, hmax=0.5)
+rr.bw # bandwidh of 0.209 by this criterion
+rr <- relrisk(ppp.asthma, rr.bw)
+rr2 <- relrisk(ppp.asthma, bw.asthma)
+sp.k.ratio$prob <- as(as(rr, 'SpatialGridDataFrame'), 'SpatialPixelsDataFrame')$v
+sp.k.ratio$prob2 <- as(as(rr, 'SpatialGridDataFrame'), 'SpatialPixelsDataFrame')$v
+
